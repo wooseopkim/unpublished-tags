@@ -1,0 +1,54 @@
+name: Unpublished Tags
+description: Compare Docker registry and GitHub repository to get unpublished tags
+
+inputs:
+  dockerhub_repository:
+    description: Docker repository to fetch latest tag from
+    required: true
+  checkout_path:
+    description: Path in which checkout was committed
+    required: false
+    default: .
+outputs:
+  tags:
+    description: Tags that are in the git repository but not published on Docker Hub yet
+    value: ${{ steps.tags.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get last published version
+      id: latest
+      shell: bash
+      env:
+        DOCKERHUB_REPOSITORY: ${{ inputs.dockerhub_repository }}
+      run: |
+        TAGS=`curl -X GET -Ls "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_REPOSITORY/tags" || :`
+        ITEM=`echo $TAGS | jq -r 'try .results[0:2] | map(select(.name != "latest"))[0].name'`
+        if [[ $ITEM == 'null' ]]; then
+          unset ITEM
+        fi
+        echo tag=$ITEM >> $GITHUB_OUTPUT
+    - name: Get all tags since last publish
+      id: tags
+      env:
+        LAST_PUBLISHED_REF: ${{ steps.latest.outputs.tag }}
+        WORKDIR: ${{ inputs.checkout_path }}
+      shell: bash
+      run: |
+        cd $WORKDIR
+        if [[ $LAST_PUBLISHED_REF == '' ]]; then
+          LAST_PUBLISHED_REF=$(git tag -l --sort=creatordate | head -1)~
+        fi
+        TAG_EXISTS=`(git rev-parse --verify --quiet $LAST_PUBLISHED_REF || :) | wc -l`
+        if [[ $TAG_EXISTS == '0' ]]; then
+          LAST_PUBLISHED_REF=v$LAST_PUBLISHED_REF
+        fi
+        echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF"
+        UNPUBLISHED_COMMITS=$(git log --reverse --format='%H' $LAST_PUBLISHED_REF..)
+        echo "::debug::UNPUBLISHED_COMMITS $(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
+        UNPUBLISHED_TAGS=$(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
+        echo "::debug::UNPUBLISHED_TAGS $(echo $UNPUBLISHED_TAGS)"
+        JSON='["'$(echo $UNPUBLISHED_TAGS | sed 's/ /", "/g')'"]'
+        echo json=$JSON >> $GITHUB_OUTPUT
+        cd -

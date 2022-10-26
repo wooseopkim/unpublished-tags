@@ -1,0 +1,61 @@
+name: Test if the action works as intended
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    types:
+    - opened
+    - synchronize
+    - reopened
+
+env:
+  CHECKOUT_PATH: target
+
+jobs:
+  all-published:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+      - name: Checkout target repository
+        uses: actions/checkout@v3
+        with:
+          repository: restic/restic
+          path: ${{ env.CHECKOUT_PATH }}
+          fetch-depth: 0
+      - name: Get unpublished tags
+        id: unpublished
+        uses: ./
+        with:
+          dockerhub_repository: restic/restic
+          checkout_path: ${{ env.CHECKOUT_PATH }}
+      - name: Assert
+        run: |
+          ${{ github.workspace }}/assert_equals \
+            0 \
+            $(echo '${{ steps.unpublished.outputs.tags }}' | jq 'map(select(. != "")) | length')
+  none-published:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+      - name: Checkout target repository
+        uses: actions/checkout@v3
+        with:
+          repository: restic/restic
+          path: ${{ env.CHECKOUT_PATH }}
+          fetch-depth: 0
+      - name: Get unpublished tags
+        id: unpublished
+        uses: ./
+        with:
+          dockerhub_repository: this-account-should-not-exist/restic
+          checkout_path: ${{ env.CHECKOUT_PATH }}
+      - name: Assert
+        run: |
+          cd $CHECKOUT_PATH
+          ${{ github.workspace }}/assert_equals \
+            $(git tag --merged refs/heads/master | wc -l) \
+            $(echo '${{ steps.unpublished.outputs.tags }}' | jq 'map(select(. != "")) | length')
