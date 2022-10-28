@@ -2,13 +2,13 @@ name: Unpublished Tags
 description: Compare Docker registry and GitHub repository to get unpublished tags
 
 inputs:
-  dockerhub_repository:
+  dockerhub-repository:
     description: Docker repository to fetch latest tag from
     required: true
-  first_tag:
+  first-tag:
     description: First tag to publish – useful when e.g. the project was not dockerized before
     required: false
-  checkout_path:
+  checkout-path:
     description: Path in which checkout was committed
     required: false
     default: .
@@ -24,7 +24,7 @@ runs:
       id: latest
       shell: bash
       env:
-        DOCKERHUB_REPOSITORY: ${{ inputs.dockerhub_repository }}
+        DOCKERHUB_REPOSITORY: ${{ inputs.dockerhub-repository }}
       run: |
         TAGS=`curl -X GET -Ls "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_REPOSITORY/tags" || :`
         ITEM=`echo $TAGS | jq -r 'try .results[0:2] | map(select(.name != "latest"))[0].name'`
@@ -36,8 +36,8 @@ runs:
       id: tags
       env:
         LAST_PUBLISHED_REF: ${{ steps.latest.outputs.tag }}
-        FIRST_TAG: ${{ inputs.first_tag }}
-        WORKDIR: ${{ inputs.checkout_path }}
+        FIRST_TAG: ${{ inputs.first-tag }}
+        WORKDIR: ${{ inputs.checkout-path }}
       shell: bash
       run: |
         cd $WORKDIR

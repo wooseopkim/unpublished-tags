@@ -30,8 +30,8 @@ jobs:
         id: unpublished
         uses: ./
         with:
-          dockerhub_repository: restic/restic
-          checkout_path: ${{ env.CHECKOUT_PATH }}
+          dockerhub-repository: restic/restic
+          checkout-path: ${{ env.CHECKOUT_PATH }}
       - name: Assert
         run: |
           ${{ github.workspace }}/assert_equals \
@@ -53,8 +53,8 @@ jobs:
         id: unpublished
         uses: ./
         with:
-          dockerhub_repository: this-account-should-not-exist/restic
-          checkout_path: ${{ env.CHECKOUT_PATH }}
+          dockerhub-repository: this-account-should-not-exist/restic
+          checkout-path: ${{ env.CHECKOUT_PATH }}
       - name: Assert
         run: |
           cd $CHECKOUT_PATH
@@ -77,9 +77,9 @@ jobs:
         id: unpublished
         uses: ./
         with:
-          dockerhub_repository: this-account-should-not-exist/restic
-          checkout_path: ${{ env.CHECKOUT_PATH }}
-          first_tag: v0.2.0
+          dockerhub-repository: this-account-should-not-exist/restic
+          checkout-path: ${{ env.CHECKOUT_PATH }}
+          first-tag: v0.2.0
       - name: Assert
         run: |
           cd $CHECKOUT_PATH
