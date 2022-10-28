@@ -59,3 +59,27 @@ jobs:
           ${{ github.workspace }}/assert_equals \
             $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
             $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)
+  has-first-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+      - name: Checkout target repository
+        uses: actions/checkout@v3
+        with:
+          repository: restic/restic
+          path: ${{ env.CHECKOUT_PATH }}
+          fetch-depth: 0
+      - name: Get unpublished tags
+        id: unpublished
+        uses: ./
+        with:
+          dockerhub_repository: this-account-should-not-exist/restic
+          checkout_path: ${{ env.CHECKOUT_PATH }}
+          first_tag: v0.2.0
+      - name: Assert
+        run: |
+          cd $CHECKOUT_PATH
+          ${{ github.workspace }}/assert_equals \
+            $(($(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]')) - 1) \
+            $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)

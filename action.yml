@@ -5,6 +5,9 @@ inputs:
   dockerhub_repository:
     description: Docker repository to fetch latest tag from
     required: true
+  first_tag:
+    description: First tag to publish – useful when e.g. the project was not dockerized before
+    required: false
   checkout_path:
     description: Path in which checkout was committed
     required: false
@@ -33,6 +36,7 @@ runs:
       id: tags
       env:
         LAST_PUBLISHED_REF: ${{ steps.latest.outputs.tag }}
+        FIRST_TAG: ${{ inputs.first_tag }}
         WORKDIR: ${{ inputs.checkout_path }}
       shell: bash
       run: |
@@ -44,8 +48,12 @@ runs:
         if [[ $TAG_EXISTS == '0' ]]; then
           LAST_PUBLISHED_REF=v$LAST_PUBLISHED_REF
         fi
+        if [[ $FIRST_TAG == '' ]]; then
+          FIRST_TAG=$(git tag -l --sort=creatordate | head -1)
+        fi
+        FIRST_TAG_DATETIME=$(git log -1 --format=%ai $FIRST_TAG)
         echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF"
-        UNPUBLISHED_COMMITS=$(git log --reverse --format='%H' $LAST_PUBLISHED_REF..)
+        UNPUBLISHED_COMMITS=$(git log --reverse --since="$FIRST_TAG_DATETIME" --format='%H' $LAST_PUBLISHED_REF..)
         echo "::debug::UNPUBLISHED_COMMITS $(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
         UNPUBLISHED_TAGS=$(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
         echo "::debug::UNPUBLISHED_TAGS $(echo $UNPUBLISHED_TAGS)"
