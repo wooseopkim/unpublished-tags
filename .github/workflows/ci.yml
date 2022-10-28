@@ -34,8 +34,8 @@ jobs:
       - name: Assert
         run: |
           ${{ github.workspace }}/assert_equals \
-            0 \
-            $(echo '${{ steps.unpublished.outputs.tags }}' | jq 'map(select(. != "")) | length')
+            '[]' \
+            $(echo '${{ steps.unpublished.outputs.tags }}')
   none-published:
     runs-on: ubuntu-latest
     steps:
