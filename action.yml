@@ -57,6 +57,6 @@ runs:
         echo "::debug::UNPUBLISHED_COMMITS $(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
         UNPUBLISHED_TAGS=$(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
         echo "::debug::UNPUBLISHED_TAGS $(echo $UNPUBLISHED_TAGS)"
-        JSON=$(echo $UNPUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs]')
+        JSON=$(echo $UNPUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
         echo json=$JSON >> $GITHUB_OUTPUT
         cd -
