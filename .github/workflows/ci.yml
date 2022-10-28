@@ -15,6 +15,7 @@ env:
 
 jobs:
   all-published:
+    name: Should return an empty JSON list when all tags are published
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repository
@@ -37,6 +38,7 @@ jobs:
             '[]' \
             $(echo '${{ steps.unpublished.outputs.tags }}')
   none-published:
+    name: Should return a JSON list with all tags when no tags are published
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repository
@@ -60,6 +62,7 @@ jobs:
             $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
             $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)
   has-first-tag:
+    name: Should skip older tags when when first tag input is provided
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repository
