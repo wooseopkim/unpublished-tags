@@ -13,6 +13,8 @@ Before you use this action, you'll need to call `actions/checkout` with the repo
 |NAME|REQUIRED|EXAMPLE|
 |-|-|-|
 |dockerhub_repository|true|`org/repository`|
+|first_tag|false (default: `<first tag>`)|`v1.2.3`|
+|checkout_path|false (default: `.`)|`dir`|
 
 ### Outputs
 
