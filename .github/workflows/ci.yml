@@ -84,5 +84,5 @@ jobs:
         run: |
           cd $CHECKOUT_PATH
           ${{ github.workspace }}/assert_equals \
-            $(($(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]')) - 1) \
+            $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0"))') \
             $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)
