@@ -8,6 +8,8 @@ This is a GitHub action to fetch tags that are in the GitHub repository but not 
 
 Before you use this action, you'll need to call `actions/checkout` with the repository of interest. Note that you need to provide input `fetch-depth: 0` to the checkout action.
 
+For private repositories, you need to call `docker/login-action` before this action. Otherwise this action silently returns all tags rather than failing.
+
 ### Inputs
 
 |NAME|REQUIRED|EXAMPLE|
