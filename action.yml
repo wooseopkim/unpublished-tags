@@ -28,7 +28,7 @@ runs:
     shell: bash
     env:
       DOCKERHUB_REPOSITORY: ${{ inputs.dockerhub-repository }}
-    run: ${{ github.action_path }}/src/get_last_published_version
+    run: ${{ github.action_path }}/scripts/get_last_published_version
   - name: Get all tags since last publish
     id: tags
     env:
@@ -36,4 +36,4 @@ runs:
       FIRST_TAG: ${{ inputs.first-tag }}
       WORKDIR: ${{ inputs.checkout-path }}
     shell: bash
-    run: ${{ github.action_path }}/src/get_all_tags_since_last_publish
+    run: ${{ github.action_path }}/scripts/get_all_tags_since_last_publish
