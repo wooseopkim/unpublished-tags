@@ -19,71 +19,71 @@ jobs:
     name: Should return an empty JSON list when all tags are published
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v3
-      - name: Checkout target repository
-        uses: actions/checkout@v3
-        with:
-          repository: restic/restic
-          path: ${{ env.CHECKOUT_PATH }}
-          fetch-depth: 0
-      - name: Get unpublished tags
-        id: unpublished
-        uses: ./
-        with:
-          dockerhub-repository: restic/restic
-          checkout-path: ${{ env.CHECKOUT_PATH }}
-      - name: Assert
-        run: |
-          $ASSERT_EQUALS \
-            '[]' \
-            $(echo '${{ steps.unpublished.outputs.unpublished }}')
+    - name: Checkout this repository
+      uses: actions/checkout@v3
+    - name: Checkout target repository
+      uses: actions/checkout@v3
+      with:
+        repository: restic/restic
+        path: ${{ env.CHECKOUT_PATH }}
+        fetch-depth: 0
+    - name: Get unpublished tags
+      id: unpublished
+      uses: ./
+      with:
+        dockerhub-repository: restic/restic
+        checkout-path: ${{ env.CHECKOUT_PATH }}
+    - name: Assert
+      run: |
+        $ASSERT_EQUALS \
+          '[]' \
+          $(echo '${{ steps.unpublished.outputs.unpublished }}')
   none-published:
     name: Should return a JSON list with all tags when no tags are published
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v3
-      - name: Checkout target repository
-        uses: actions/checkout@v3
-        with:
-          repository: restic/restic
-          path: ${{ env.CHECKOUT_PATH }}
-          fetch-depth: 0
-      - name: Get unpublished tags
-        id: unpublished
-        uses: ./
-        with:
-          dockerhub-repository: this-account-should-not-exist/restic
-          checkout-path: ${{ env.CHECKOUT_PATH }}
-      - name: Assert
-        run: |
-          cd $CHECKOUT_PATH
-          $ASSERT_EQUALS \
-            $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
-            $(echo '${{ steps.unpublished.outputs.unpublished }}' | jq -n -c inputs)
+    - name: Checkout this repository
+      uses: actions/checkout@v3
+    - name: Checkout target repository
+      uses: actions/checkout@v3
+      with:
+        repository: restic/restic
+        path: ${{ env.CHECKOUT_PATH }}
+        fetch-depth: 0
+    - name: Get unpublished tags
+      id: unpublished
+      uses: ./
+      with:
+        dockerhub-repository: this-account-should-not-exist/restic
+        checkout-path: ${{ env.CHECKOUT_PATH }}
+    - name: Assert
+      run: |
+        cd $CHECKOUT_PATH
+        $ASSERT_EQUALS \
+          $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
+          $(echo '${{ steps.unpublished.outputs.unpublished }}' | jq -n -c inputs)
   has-first-tag:
     name: Should skip older tags when when first tag input is provided
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v3
-      - name: Checkout target repository
-        uses: actions/checkout@v3
-        with:
-          repository: restic/restic
-          path: ${{ env.CHECKOUT_PATH }}
-          fetch-depth: 0
-      - name: Get unpublished tags
-        id: unpublished
-        uses: ./
-        with:
-          dockerhub-repository: this-account-should-not-exist/restic
-          checkout-path: ${{ env.CHECKOUT_PATH }}
-          first-tag: v0.2.0
-      - name: Assert
-        run: |
-          cd $CHECKOUT_PATH
-          $ASSERT_EQUALS \
-            $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0"))') \
-            $(echo '${{ steps.unpublished.outputs.unpublished }}' | jq -n -c inputs)
+    - name: Checkout this repository
+      uses: actions/checkout@v3
+    - name: Checkout target repository
+      uses: actions/checkout@v3
+      with:
+        repository: restic/restic
+        path: ${{ env.CHECKOUT_PATH }}
+        fetch-depth: 0
+    - name: Get unpublished tags
+      id: unpublished
+      uses: ./
+      with:
+        dockerhub-repository: this-account-should-not-exist/restic
+        checkout-path: ${{ env.CHECKOUT_PATH }}
+        first-tag: v0.2.0
+    - name: Assert
+      run: |
+        cd $CHECKOUT_PATH
+        $ASSERT_EQUALS \
+          $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0"))') \
+          $(echo '${{ steps.unpublished.outputs.unpublished }}' | jq -n -c inputs)
