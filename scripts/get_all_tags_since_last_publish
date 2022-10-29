@@ -3,33 +3,33 @@
 if [ "$FIRST_TAG" = '' ]; then
   FIRST_TAG=$(git tag -l --sort=creatordate | head -1)
 fi
-FIRST_TAG_SHA=$(git log -1 --format='%H' $FIRST_TAG)
+FIRST_TAG_SHA=$(git log -1 --format='%H' "$FIRST_TAG")
 echo "::debug::FIRST_TAG $FIRST_TAG ($FIRST_TAG_SHA)"
 
 if [ "$LAST_PUBLISHED_REF" = '' ]; then
-  LAST_PUBLISHED_REF=$FIRST_TAG~
+  LAST_PUBLISHED_REF="${FIRST_TAG}~"
 fi
-TAG_EXISTS=`(git rev-parse --verify --quiet $LAST_PUBLISHED_REF || :) | wc -l`
+TAG_EXISTS=`(git rev-parse --verify --quiet "$LAST_PUBLISHED_REF" || :) | wc -l`
 if [ "$TAG_EXISTS" = '0' ]; then
-  LAST_PUBLISHED_REF=v$LAST_PUBLISHED_REF
+  LAST_PUBLISHED_REF="v$LAST_PUBLISHED_REF"
 fi
 LAST_PUBLISHED_SHA=$(git log -1 --format='%H' $LAST_PUBLISHED_REF)
 echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF ($LAST_PUBLISHED_SHA)"
 
-PUBLISHED_COMMITS=$(git log --reverse --format='%H' $FIRST_TAG_SHA..$LAST_PUBLISHED_SHA)
-echo "::debug::PUBLISHED_COMMITS $(echo $PUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
+PUBLISHED_COMMITS=$(git log --reverse --format='%H' "$FIRST_TAG_SHA".."$LAST_PUBLISHED_SHA")
+echo "::debug::PUBLISHED_COMMITS $(echo \"$PUBLISHED_COMMITS\" | tr ' ' '\n' | wc -l)"
 
 PUBLISHED_TAGS=$(echo $PUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
-echo "::debug::PUBLISHED_TAGS $(echo $PUBLISHED_TAGS)"
+echo "::debug::PUBLISHED_TAGS $PUBLISHED_TAGS"
 
 PUBLISHED_JSON=$(echo $PUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
-echo published=$PUBLISHED_JSON >> $GITHUB_OUTPUT
+echo published="$PUBLISHED_JSON" >> $GITHUB_OUTPUT
 
-UNPUBLISHED_COMMITS=$(git log --reverse --format='%H' $LAST_PUBLISHED_SHA..)
+UNPUBLISHED_COMMITS=$(git log --reverse --format='%H' "$LAST_PUBLISHED_SHA"..)
 echo "::debug::UNPUBLISHED_COMMITS $(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
 
-UNPUBLISHED_TAGS=$(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
+UNPUBLISHED_TAGS=$(echo "$UNPUBLISHED_COMMITS" | tr ' ' '\n' | xargs -I % git tag --points-at=%)
 echo "::debug::UNPUBLISHED_TAGS $(echo $UNPUBLISHED_TAGS)"
 
-UNPUBLISHED_JSON=$(echo $UNPUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
-echo unpublished=$UNPUBLISHED_JSON >> $GITHUB_OUTPUT
+UNPUBLISHED_JSON=$(echo "$UNPUBLISHED_TAGS" | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
+echo unpublished="$UNPUBLISHED_JSON" >> $GITHUB_OUTPUT
