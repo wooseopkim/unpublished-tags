@@ -29,7 +29,7 @@ jobs:
   tags:
     runs-on: ubuntu-latest
     outputs:
-      json: ${{ steps.unpublished.outputs.json }}
+      json: ${{ steps.unpublished.outputs.tags }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,7 +46,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        tag: ${{ fromJSON(needs.tags.outputs.json) }}
+        tag: ${{ fromJSON(needs.tags.outputs.tags) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
