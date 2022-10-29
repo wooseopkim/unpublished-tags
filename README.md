@@ -20,7 +20,7 @@ Before you use this action, you'll need to call `actions/checkout` with the repo
 
 |NAME|EXAMPLE|NOTE|
 |-|-|-|
-|tags|`["1.23.1", "1.23.0", ..., "0.1.0"]`|This is the list of Docker tags, not git tags.|
+|tags|`["1.23.1", "1.23.0", ..., "0.1.0"]`|This is the list of git tags, not Docker tags.|
 
 ### Example
 
