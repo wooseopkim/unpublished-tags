@@ -13,9 +13,12 @@ inputs:
     required: false
     default: .
 outputs:
-  tags:
+  unpublished:
     description: Tags that are in the git repository but not published on Docker Hub yet
     value: ${{ steps.tags.outputs.unpublished }}
+  published:
+    description: Tags that are already published on Docker Hub
+    value: ${{ steps.tags.outputs.published }}
 
 runs:
   using: composite
