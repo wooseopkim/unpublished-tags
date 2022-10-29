@@ -2,16 +2,16 @@
 
 cd $WORKDIR
 
-if [ $FIRST_TAG -eq '' ]; then
+if [ $FIRST_TAG == '' ]; then
   FIRST_TAG=$(git tag -l --sort=creatordate | head -1)
 fi
 echo "::debug::FIRST_TAG $FIRST_TAG"
 
-if [ $LAST_PUBLISHED_REF -eq '' ]; then
+if [ $LAST_PUBLISHED_REF == '' ]; then
   LAST_PUBLISHED_REF=$FIRST_TAG~
 fi
 TAG_EXISTS=`(git rev-parse --verify --quiet $LAST_PUBLISHED_REF || :) | wc -l`
-if [ $TAG_EXISTS -eq '0' ]; then
+if [ $TAG_EXISTS == '0' ]; then
   LAST_PUBLISHED_REF=v$LAST_PUBLISHED_REF
 fi
 echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF"
