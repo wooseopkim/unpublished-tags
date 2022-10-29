@@ -37,7 +37,7 @@ jobs:
         run: |
           $ASSERT_EQUALS \
             '[]' \
-            $(echo '${{ steps.unpublished.outputs.tags }}')
+            $(echo '${{ steps.unpublished.outputs.unpublished }}')
   none-published:
     name: Should return a JSON list with all tags when no tags are published
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
           cd $CHECKOUT_PATH
           $ASSERT_EQUALS \
             $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
-            $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)
+            $(echo '${{ steps.unpublished.outputs.unpublished }}' | jq -n -c inputs)
   has-first-tag:
     name: Should skip older tags when when first tag input is provided
     runs-on: ubuntu-latest
@@ -86,4 +86,4 @@ jobs:
           cd $CHECKOUT_PATH
           $ASSERT_EQUALS \
             $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0"))') \
-            $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)
+            $(echo '${{ steps.unpublished.outputs.unpublished }}' | jq -n -c inputs)

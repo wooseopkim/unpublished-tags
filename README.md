@@ -2,7 +2,7 @@
 
 ## Summary
 
-This is a GitHub action to fetch tags that are in the GitHub repository but not published on the Docker Hub repository yet.
+This is a GitHub action to fetch tags that are in the GitHub repository but not published on the Docker Hub repository yet, along with the ones that are already published.
 
 ## User Guide
 
@@ -20,7 +20,8 @@ Before you use this action, you'll need to call `actions/checkout` with the repo
 
 |NAME|EXAMPLE|NOTE|
 |-|-|-|
-|tags|`["1.23.1", "1.23.0", ..., "0.1.0"]`|This is the list of git tags, not Docker tags.|
+|unpublished|`["1.2.4", ..., "2.1.1"]`|This is the list of git tags, not Docker tags.|
+|published|`["0.1.0", ..., "1.2.3"]`|This is the list of git tags, not Docker tags.|
 
 ### Example
 
@@ -29,7 +30,7 @@ jobs:
   tags:
     runs-on: ubuntu-latest
     outputs:
-      json: ${{ steps.unpublished.outputs.tags }}
+      json: ${{ steps.unpublished.outputs.unpublished }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,7 +47,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        tag: ${{ fromJSON(needs.tags.outputs.tags) }}
+        tag: ${{ fromJSON(needs.tags.outputs.unpublished) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3

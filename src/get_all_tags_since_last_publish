@@ -5,7 +5,8 @@ cd $WORKDIR
 if [ "$FIRST_TAG" = '' ]; then
   FIRST_TAG=$(git tag -l --sort=creatordate | head -1)
 fi
-echo "::debug::FIRST_TAG $FIRST_TAG"
+FIRST_TAG_SHA=$(git log -1 --format='%H' $FIRST_TAG)
+echo "::debug::FIRST_TAG $FIRST_TAG ($FIRST_TAG_SHA)"
 
 if [ "$LAST_PUBLISHED_REF" = '' ]; then
   LAST_PUBLISHED_REF=$FIRST_TAG~
@@ -14,11 +15,19 @@ TAG_EXISTS=`(git rev-parse --verify --quiet $LAST_PUBLISHED_REF || :) | wc -l`
 if [ "$TAG_EXISTS" = '0' ]; then
   LAST_PUBLISHED_REF=v$LAST_PUBLISHED_REF
 fi
-echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF"
+LAST_PUBLISHED_SHA=$(git log -1 --format='%H' $LAST_PUBLISHED_REF)
+echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF ($LAST_PUBLISHED_SHA)"
 
-FIRST_TAG_DATETIME=$(git log -1 --format=%ai $FIRST_TAG)
+PUBLISHED_COMMITS=$(git log --reverse --format='%H' $FIRST_TAG_SHA..$LAST_PUBLISHED_SHA)
+echo "::debug::PUBLISHED_COMMITS $(echo $PUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
 
-UNPUBLISHED_COMMITS=$(git log --reverse --since="$FIRST_TAG_DATETIME" --format='%H' $LAST_PUBLISHED_REF..)
+PUBLISHED_TAGS=$(echo $PUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
+echo "::debug::PUBLISHED_TAGS $(echo $PUBLISHED_TAGS)"
+
+PUBLISHED_JSON=$(echo $PUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
+echo published=$PUBLISHED_JSON >> $GITHUB_OUTPUT
+
+UNPUBLISHED_COMMITS=$(git log --reverse --format='%H' $LAST_PUBLISHED_SHA..)
 echo "::debug::UNPUBLISHED_COMMITS $(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
 
 UNPUBLISHED_TAGS=$(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
