@@ -38,7 +38,7 @@ jobs:
           fetch-depth: 0
       - name: Get unpublished tags
         id: unpublished
-        uses: wooseopkim/unpublished-tags@v2
+        uses: wooseopkim/unpublished-tags@v3
         with:
           dockerhub-repository: org/repository
   build:
