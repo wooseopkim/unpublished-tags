@@ -2,7 +2,7 @@
 
 ## Summary
 
-This is a GitHub action to fetch tags that are in the GitHub repository but not published on the Docker Hub repository yet, along with the ones that are already published.
+This is a GitHub Actions action to fetch tags that are in the GitHub repository but not published on the Docker Hub repository yet, along with the ones that are already published.
 
 ## User Guide
 

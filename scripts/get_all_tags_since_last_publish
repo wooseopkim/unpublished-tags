@@ -1,7 +1,5 @@
 #!/bin/sh
 
-cd $WORKDIR
-
 if [ "$FIRST_TAG" = '' ]; then
   FIRST_TAG=$(git tag -l --sort=creatordate | head -1)
 fi
@@ -35,5 +33,3 @@ echo "::debug::UNPUBLISHED_TAGS $(echo $UNPUBLISHED_TAGS)"
 
 UNPUBLISHED_JSON=$(echo $UNPUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
 echo unpublished=$UNPUBLISHED_JSON >> $GITHUB_OUTPUT
-
-cd -

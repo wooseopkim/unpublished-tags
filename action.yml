@@ -34,6 +34,6 @@ runs:
     env:
       LAST_PUBLISHED_REF: ${{ steps.latest.outputs.tag }}
       FIRST_TAG: ${{ inputs.first-tag }}
-      WORKDIR: ${{ inputs.checkout-path }}
     shell: bash
+    working-directory: ${{ inputs.checkout-path }}
     run: ${{ github.action_path }}/scripts/get_all_tags_since_last_publish
