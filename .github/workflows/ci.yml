@@ -12,6 +12,7 @@ on:
 
 env:
   CHECKOUT_PATH: target
+  ASSERT_EQUALS: ${{ github.workspace }}/src/assert_equals
 
 jobs:
   all-published:
@@ -34,7 +35,7 @@ jobs:
           checkout-path: ${{ env.CHECKOUT_PATH }}
       - name: Assert
         run: |
-          ${{ github.workspace }}/assert_equals \
+          $ASSERT_EQUALS \
             '[]' \
             $(echo '${{ steps.unpublished.outputs.tags }}')
   none-published:
@@ -58,7 +59,7 @@ jobs:
       - name: Assert
         run: |
           cd $CHECKOUT_PATH
-          ${{ github.workspace }}/assert_equals \
+          $ASSERT_EQUALS \
             $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
             $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)
   has-first-tag:
@@ -83,6 +84,6 @@ jobs:
       - name: Assert
         run: |
           cd $CHECKOUT_PATH
-          ${{ github.workspace }}/assert_equals \
+          $ASSERT_EQUALS \
             $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0"))') \
             $(echo '${{ steps.unpublished.outputs.tags }}' | jq -n -c inputs)

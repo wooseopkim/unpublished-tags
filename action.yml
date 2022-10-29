@@ -15,7 +15,7 @@ inputs:
 outputs:
   tags:
     description: Tags that are in the git repository but not published on Docker Hub yet
-    value: ${{ steps.tags.outputs.json }}
+    value: ${{ steps.tags.outputs.unpublished }}
 
 runs:
   using: composite
@@ -25,13 +25,7 @@ runs:
       shell: bash
       env:
         DOCKERHUB_REPOSITORY: ${{ inputs.dockerhub-repository }}
-      run: |
-        TAGS=`curl -X GET -Ls "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_REPOSITORY/tags" || :`
-        ITEM=`echo $TAGS | jq -r 'try .results[0:2] | map(select(.name != "latest"))[0].name'`
-        if [[ $ITEM == 'null' ]]; then
-          unset ITEM
-        fi
-        echo tag=$ITEM >> $GITHUB_OUTPUT
+      run: ${{ github.action_path }}/src/get_last_published_version
     - name: Get all tags since last publish
       id: tags
       env:
@@ -39,24 +33,4 @@ runs:
         FIRST_TAG: ${{ inputs.first-tag }}
         WORKDIR: ${{ inputs.checkout-path }}
       shell: bash
-      run: |
-        cd $WORKDIR
-        if [[ $LAST_PUBLISHED_REF == '' ]]; then
-          LAST_PUBLISHED_REF=$(git tag -l --sort=creatordate | head -1)~
-        fi
-        TAG_EXISTS=`(git rev-parse --verify --quiet $LAST_PUBLISHED_REF || :) | wc -l`
-        if [[ $TAG_EXISTS == '0' ]]; then
-          LAST_PUBLISHED_REF=v$LAST_PUBLISHED_REF
-        fi
-        if [[ $FIRST_TAG == '' ]]; then
-          FIRST_TAG=$(git tag -l --sort=creatordate | head -1)
-        fi
-        FIRST_TAG_DATETIME=$(git log -1 --format=%ai $FIRST_TAG)
-        echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF"
-        UNPUBLISHED_COMMITS=$(git log --reverse --since="$FIRST_TAG_DATETIME" --format='%H' $LAST_PUBLISHED_REF..)
-        echo "::debug::UNPUBLISHED_COMMITS $(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
-        UNPUBLISHED_TAGS=$(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
-        echo "::debug::UNPUBLISHED_TAGS $(echo $UNPUBLISHED_TAGS)"
-        JSON=$(echo $UNPUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
-        echo json=$JSON >> $GITHUB_OUTPUT
-        cd -
+      run: ${{ github.action_path }}/src/get_all_tags_since_last_publish

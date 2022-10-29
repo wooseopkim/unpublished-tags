@@ -1,0 +1,30 @@
+#!/bin/sh
+
+cd $WORKDIR
+
+if [[ $FIRST_TAG == '' ]]; then
+  FIRST_TAG=$(git tag -l --sort=creatordate | head -1)
+fi
+echo "::debug::FIRST_TAG $FIRST_TAG"
+
+if [[ $LAST_PUBLISHED_REF == '' ]]; then
+  LAST_PUBLISHED_REF=$FIRST_TAG~
+fi
+TAG_EXISTS=`(git rev-parse --verify --quiet $LAST_PUBLISHED_REF || :) | wc -l`
+if [[ $TAG_EXISTS == '0' ]]; then
+  LAST_PUBLISHED_REF=v$LAST_PUBLISHED_REF
+fi
+echo "::debug::LAST_PUBLISHED_REF $LAST_PUBLISHED_REF"
+
+FIRST_TAG_DATETIME=$(git log -1 --format=%ai $FIRST_TAG)
+
+UNPUBLISHED_COMMITS=$(git log --reverse --since="$FIRST_TAG_DATETIME" --format='%H' $LAST_PUBLISHED_REF..)
+echo "::debug::UNPUBLISHED_COMMITS $(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | wc -l)"
+
+UNPUBLISHED_TAGS=$(echo $UNPUBLISHED_COMMITS | tr ' ' '\n' | xargs -I % git tag --points-at=%)
+echo "::debug::UNPUBLISHED_TAGS $(echo $UNPUBLISHED_TAGS)"
+
+UNPUBLISHED_JSON=$(echo $UNPUBLISHED_TAGS | tr ' ' '\n' | jq -n -R -c '[inputs] | map(select(. != ""))')
+echo unpublished=$UNPUBLISHED_JSON >> $GITHUB_OUTPUT
+
+cd -

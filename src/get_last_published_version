@@ -1,0 +1,10 @@
+#!/bin/sh
+
+TAGS=`curl -X GET -Ls "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_REPOSITORY/tags" || :`
+
+ITEM=`echo $TAGS | jq -r 'try .results[0:2] | map(select(.name != "latest"))[0].name'`
+if [[ $ITEM == 'null' ]]; then
+  unset ITEM
+fi
+
+echo tag=$ITEM >> $GITHUB_OUTPUT
