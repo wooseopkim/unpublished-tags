@@ -12,7 +12,7 @@ on:
 
 env:
   CHECKOUT_PATH: target
-  ASSERT_EQUALS: ${{ github.workspace }}src/assert_equals
+  ASSERT_EQUALS: ${{ github.workspace }}/src/assert_equals
 
 jobs:
   all-published:
