@@ -28,15 +28,23 @@ jobs:
         path: ${{ env.CHECKOUT_PATH }}
         fetch-depth: 0
     - name: Get unpublished tags
-      id: unpublished
+      id: tags
       uses: ./
       with:
         dockerhub-repository: restic/restic
         checkout-path: ${{ env.CHECKOUT_PATH }}
-    - name: Assert
+    - name: Check unpublished list
       env:
-        UNPUBLISHED: ${{ steps.unpublished.outputs.unpublished }}
-      run: $ASSERT_EQUALS '[]' $(echo "$UNPUBLISHED")
+        UNPUBLISHED: ${{ steps.tags.outputs.unpublished }}
+      run: |
+        $ASSERT_EQUALS '[]' $(echo "$UNPUBLISHED")
+    - name: Check published list
+      env:
+        PUBLISHED: ${{ steps.tags.outputs.published }}
+      run: |
+        $ASSERT_EQUALS \
+          $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
+          $(echo "$PUBLISHED" | jq -n -c inputs)
   none-published:
     name: Should return a JSON list with all tags when no tags are published
     runs-on: ubuntu-latest
@@ -49,20 +57,25 @@ jobs:
         repository: restic/restic
         path: ${{ env.CHECKOUT_PATH }}
         fetch-depth: 0
-    - name: Get unpublished tags
-      id: unpublished
+    - name: Get tags
+      id: tags
       uses: ./
       with:
         dockerhub-repository: this-account-should-not-exist/restic
         checkout-path: ${{ env.CHECKOUT_PATH }}
-    - name: Assert
+    - name: Check unpublished
       env:
-        UNPUBLISHED: ${{ steps.unpublished.outputs.unpublished }}
+        UNPUBLISHED: ${{ steps.tags.outputs.unpublished }}
       run: |
         cd $CHECKOUT_PATH
         $ASSERT_EQUALS \
           $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
           $(echo "$UNPUBLISHED" | jq -n -c inputs)
+    - name: Check published
+      env:
+        PUBLISHED: ${{ steps.tags.outputs.published }}
+      run: |
+        $ASSERT_EQUALS '[]' $(echo "$PUBLISHED")
   has-first-tag:
     name: Should skip older tags when when first tag input is provided
     runs-on: ubuntu-latest
@@ -75,18 +88,26 @@ jobs:
         repository: restic/restic
         path: ${{ env.CHECKOUT_PATH }}
         fetch-depth: 0
-    - name: Get unpublished tags
-      id: unpublished
+    - name: Get tags
+      id: tags
       uses: ./
       with:
         dockerhub-repository: this-account-should-not-exist/restic
         checkout-path: ${{ env.CHECKOUT_PATH }}
-        first-tag: v0.2.0
-    - name: Assert
+        first-tag: v0.3.0
+    - name: Check unpublisehd
       env:
-        UNPUBLISHED: ${{ steps.unpublished.outputs.unpublished }}
+        UNPUBLISHED: ${{ steps.tags.outputs.unpublished }}
       run: |
         cd $CHECKOUT_PATH
         $ASSERT_EQUALS \
-          $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0"))') \
+          $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0" && . != "v0.2.0"))') \
           $(echo "$UNPUBLISHED" | jq -n -c inputs)
+    - name: Check publisehd
+      env:
+        PUBLISHED: ${{ steps.tags.outputs.published }}
+      run: |
+        cd $CHECKOUT_PATH
+        $ASSERT_EQUALS \
+          $(echo '["v0.1.0", "v0.2.0"]') \
+          $(echo "$PUBLISHED" | jq -n -c inputs)
