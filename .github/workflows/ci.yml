@@ -109,6 +109,4 @@ jobs:
         PUBLISHED: ${{ steps.tags.outputs.published }}
       working-directory: ${{ env.CHECKOUT_PATH }}
       run: |
-        $ASSERT_EQUALS \
-          $(echo '["v0.1.0","v0.2.0"]') \
-          $(echo "$PUBLISHED" | jq -n -c inputs)
+        $ASSERT_EQUALS '[]' $(echo "$PUBLISHED" | jq -n -c inputs)
