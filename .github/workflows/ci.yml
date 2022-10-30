@@ -41,6 +41,7 @@ jobs:
     - name: Check published list
       env:
         PUBLISHED: ${{ steps.tags.outputs.published }}
+      working-directory: ${{ env.CHECKOUT_PATH }}
       run: |
         $ASSERT_EQUALS \
           $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
@@ -66,8 +67,8 @@ jobs:
     - name: Check unpublished
       env:
         UNPUBLISHED: ${{ steps.tags.outputs.unpublished }}
+      working-directory: ${{ env.CHECKOUT_PATH }}
       run: |
-        cd $CHECKOUT_PATH
         $ASSERT_EQUALS \
           $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs]') \
           $(echo "$UNPUBLISHED" | jq -n -c inputs)
@@ -98,16 +99,16 @@ jobs:
     - name: Check unpublisehd
       env:
         UNPUBLISHED: ${{ steps.tags.outputs.unpublished }}
+      working-directory: ${{ env.CHECKOUT_PATH }}
       run: |
-        cd $CHECKOUT_PATH
         $ASSERT_EQUALS \
           $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0" && . != "v0.2.0"))') \
           $(echo "$UNPUBLISHED" | jq -n -c inputs)
     - name: Check publisehd
       env:
         PUBLISHED: ${{ steps.tags.outputs.published }}
+      working-directory: ${{ env.CHECKOUT_PATH }}
       run: |
-        cd $CHECKOUT_PATH
         $ASSERT_EQUALS \
           $(echo '["v0.1.0", "v0.2.0"]') \
           $(echo "$PUBLISHED" | jq -n -c inputs)
