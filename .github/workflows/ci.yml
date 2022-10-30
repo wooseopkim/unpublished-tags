@@ -102,7 +102,7 @@ jobs:
       working-directory: ${{ env.CHECKOUT_PATH }}
       run: |
         $ASSERT_EQUALS \
-          $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0" && . != "v0.2.0"))') \
+          $(git tag --merged refs/heads/master --sort=creatordate | jq -n -R -c '[inputs] | map(select(. != "v0.1.0" and . != "v0.2.0"))') \
           $(echo "$UNPUBLISHED" | jq -n -c inputs)
     - name: Check publisehd
       env:
